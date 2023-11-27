@@ -22,6 +22,59 @@ def dict_factory(cursor, row):
     fields = [column[0] for column in cursor.description]
     return {key: value for key, value in zip(fields, row)}
 
+@app.route('/delete', methods = ['DELETE'])
+def deleteProduct():
+    conn = sqlite3.connect(databasename)
+    conn.row_factory = dict_factory 
+    cur = conn.cursor()
+    try:
+        query = "DELETE FROM products WHERE id = ?"
+        id = request.args.get('id')
+        cur.execute(query, id)
+        conn.commit()
+
+        return jsonify({"product": "Deleted"})
+
+    except Exception as err:
+
+        error_response = {
+            "err": err,
+            "error": {
+                #choose erro 400 because I couldn't find any http code errors for  failed queries.
+                "code": 400,
+                "message": "Query failed"
+            }
+        }
+        return jsonify(error_response)
+
+@app.route('/update', methods = ['PUT'])
+def updateStock():
+    conn = sqlite3.connect(databasename)
+    conn.row_factory = dict_factory 
+    cur = conn.cursor()
+    try:
+        query = "UPDATE products SET stock = ? WHERE id = ?"
+        stock = request.form.get('stock')
+        id = request.args.get('id')
+        cur.execute(query, (stock,id))
+        conn.commit()
+
+        return jsonify({"stock": "updated"})
+
+    except Exception as err:
+
+        error_response = {
+            "err": err,
+            "error": {
+                #choose erro 400 because I couldn't find any http code errors for  failed queries.
+                "code": 400,
+                "message": "Query failed"
+            }
+        }
+        return jsonify(error_response)
+
+
+
 @app.route('/description', methods = ['GET'])
 def getDescription():
     conn = sqlite3.connect(databasename)
@@ -30,7 +83,8 @@ def getDescription():
     try:
         query =  "SELECT * FROM products WHERE id = ?"
         id = request.args.get('id')
-        cur.execute(query,id)
+        print('SQL Query:', query, 'with ID:', id)
+        cur.execute(query,(id, ))
         products = cur.fetchone()
 
         print(products)
@@ -60,7 +114,7 @@ def getProducts():
 
     try:
             
-        query =  "SELECT productName, stock, productImage FROM products"
+        query =  "SELECT id, productName, stock, productImage FROM products"
         cur.execute(query)
         products = cur.fetchall()
 
