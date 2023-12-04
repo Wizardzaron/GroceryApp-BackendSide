@@ -30,7 +30,7 @@ def deleteProduct():
     try:
         query = "DELETE FROM products WHERE id = ?"
         id = request.args.get('id')
-        cur.execute(query, id)
+        cur.execute(query, (id,))
         conn.commit()
 
         return jsonify({"product": "Deleted"})
